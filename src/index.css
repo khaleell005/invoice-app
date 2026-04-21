@@ -1,0 +1,209 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --purple: #7C5DFA;
+  --purple-light: #9277FF;
+  --purple-dim: #DFE3FA;
+  --red: #EC5757;
+  --red-light: #FF9797;
+  --green: #33D69F;
+  --green-bg: rgba(51, 214, 159, 0.06);
+  --orange: #FF8F00;
+  --orange-bg: rgba(255, 143, 0, 0.06);
+  --bg1: #F8F8FB;
+  --bg2: #FFFFFF;
+  --bg3: #F8F8FB;
+  --sidebar: #373B53;
+  --card: #FFFFFF;
+  --card-hover: #FFFFFF;
+  --border: #DFE3FA;
+  --text1: #0C0E16;
+  --text2: #888EB0;
+  --text3: #7E88C3;
+  --text4: #858BB2;
+  --input-bg: #FFFFFF;
+  --input-border: #DFE3FA;
+  --label-color: #7E88C3;
+  --total-bg: #373B53;
+  --total-text: #FFFFFF;
+  --draft-bg: #DFE3FA;
+  --draft-dot: #373B53;
+  --draft-text: #7E88C3;
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+  --nav-icon-filter: none;
+  --delete-btn-bg: #EC5757;
+  --transition: 0.2s ease;
+}
+
+[data-theme="dark"] {
+  --bg1: #141625;
+  --bg2: #1E2139;
+  --bg3: #141625;
+  --sidebar: #373B53;
+  --card: #1E2139;
+  --card-hover: #252945;
+  --border: #252945;
+  --text1: #FFFFFF;
+  --text2: #DFE3FA;
+  --text3: #DFE3FA;
+  --text4: #888EB0;
+  --input-bg: #252945;
+  --input-border: #252945;
+  --label-color: #888EB0;
+  --total-bg: #0C0E16;
+  --total-text: #FFFFFF;
+  --draft-bg: #292C44;
+  --draft-dot: #DFE3FA;
+  --draft-text: #DFE3FA;
+  --draft-btn-text: #858BB2;
+  --purple-dim: #252945;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+}
+
+html, body, #root {
+  height: 100%;
+  min-height: 100vh;
+}
+
+body {
+  font-family: 'Spartan', sans-serif;
+  background: var(--bg1);
+  color: var(--text1);
+  transition: background var(--transition), color var(--transition);
+  overflow-x: hidden;
+}
+
+input, select, textarea {
+  font-family: 'Spartan', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text1);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  padding: 0 16px;
+  height: 48px;
+  width: 100%;
+  outline: none;
+  transition: border-color var(--transition);
+  -webkit-appearance: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--purple);
+}
+
+input.error, select.error {
+  border-color: var(--red);
+}
+
+textarea {
+  height: 88px;
+  padding: 16px;
+  resize: none;
+  line-height: 1.6;
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237C5DFA' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: calc(100% - 16px) center;
+  cursor: pointer;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--label-color);
+  margin-bottom: 10px;
+}
+
+button {
+  font-family: 'Spartan', sans-serif;
+  cursor: pointer;
+  border: none;
+  font-weight: 700;
+  transition: all var(--transition);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+@media (min-width: 768px) {
+  .show-mobile {
+    display: none !important;
+  }
+  .hide-mobile {
+    display: inline !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .show-mobile {
+    display: inline !important;
+  }
+  .hide-mobile {
+    display: none !important;
+  }
+  .detail-actions button {
+    padding: 12px 16px !important;
+    font-size: 11px !important;
+  }
+}
+
+.show-mobile {
+  display: none;
+}
+
+.hide-mobile {
+  display: inline;
+}
+
+@media (min-width: 768px) {
+  #main-layout {
+    padding-left: 103px !important;
+    padding-top: 0 !important;
+  }
+  #sidebar-desktop {
+    display: flex !important;
+  }
+  #nav-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  #sidebar-desktop {
+    display: none !important;
+  }
+  #nav-mobile {
+    display: flex !important;
+  }
+  #main-layout {
+    padding-left: 0 !important;
+    padding-top: 72px !important;
+  }
+}
