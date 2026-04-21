@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InvoiceFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Spartan:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --purple:#7C5DFA;
+    --purple-light:#9277FF;
+    --purple-dim:#DFE3FA;
+    --red:#EC5757;
+    --red-light:#FF9797;
+    --green:#33D69F;
+    --green-bg:rgba(51,214,159,0.06);
+    --orange:#FF8F00;
+    --orange-bg:rgba(255,143,0,0.06);
+    --bg1:#F8F8FB;
+    --bg2:#FFFFFF;
+    --bg3:#F8F8FB;
+    --sidebar:#373B53;
+    --card:#FFFFFF;
+    --card-hover:#FFFFFF;
+    --border:#DFE3FA;
+    --text1:#0C0E16;
+    --text2:#888EB0;
+    --text3:#7E88C3;
+    --text4:#858BB2;
+    --input-bg:#FFFFFF;
+    --input-border:#DFE3FA;
+    --label-color:#7E88C3;
+    --total-bg:#373B53;
+    --total-text:#FFFFFF;
+    --draft-bg:#373B53;
+    --draft-dot:#373B53;
+    --draft-text:#373B53;
+    --modal-overlay:rgba(0,0,0,0.5);
+    --nav-icon-filter:none;
+    --delete-btn-bg:#EC5757;
+    --transition:0.2s ease;
+  }
+  [data-theme="dark"]{
+    --bg1:#141625;
+    --bg2:#1E2139;
+    --bg3:#141625;
+    --sidebar:#373B53;
+    --card:#1E2139;
+    --card-hover:#252945;
+    --border:#252945;
+    --text1:#FFFFFF;
+    --text2:#DFE3FA;
+    --text3:#DFE3FA;
+    --text4:#888EB0;
+    --input-bg:#252945;
+    --input-border:#252945;
+    --label-color:#888EB0;
+    --total-bg:#0C0E16;
+    --total-text:#FFFFFF;
+    --draft-bg:#292C44;
+    --draft-dot:#DFE3FA;
+    --draft-text:#DFE3FA;
+    --purple-dim:#252945;
+    --modal-overlay:rgba(0,0,0,0.7);
+  }
+  html,body,#root{height:100%;min-height:100vh}
+  body{
+    font-family:'Spartan',sans-serif;
+    background:var(--bg1);
+    color:var(--text1);
+    transition:background var(--transition),color var(--transition);
+    overflow-x:hidden;
+  }
+  input,select,textarea{
+    font-family:'Spartan',sans-serif;
+    font-size:12px;
+    font-weight:700;
+    color:var(--text1);
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
+    border-radius:4px;
+    padding:0 16px;
+    height:48px;
+    width:100%;
+    outline:none;
+    transition:border-color var(--transition);
+    -webkit-appearance:none;
+  }
+  input:focus,select:focus{border-color:var(--purple);}
+  input.error,select.error{border-color:var(--red);}
+  textarea{height:88px;padding:16px;resize:none;line-height:1.6}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237C5DFA' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:calc(100% - 16px) center;cursor:pointer;}
+  label{display:block;font-size:12px;font-weight:500;color:var(--label-color);margin-bottom:10px}
+  button{font-family:'Spartan',sans-serif;cursor:pointer;border:none;font-weight:700;transition:all var(--transition);}
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,createContext,useContext}=React;
+
+const ThemeCtx=createContext();
+const InvoiceCtx=createContext();
+
+const SEED=[
+  {id:'RT3080',clientName:'Jensen Huang',clientEmail:'jensenhuang@mail.com',clientAddress:{street:'106 Kendell Street',city:'Sharborough',postCode:'E1 8EF',country:'United Kingdom'},senderAddress:{street:'19 Union Terrace',city:'London',postCode:'E1 3EZ',country:'United Kingdom'},invoiceDate:'2021-08-19',paymentTerms:30,projectDescription:'Re-branding',items:[{name:'Brand Guidelines',quantity:1,price:1800.90,total:1800.90}],status:'paid',total:1800.90},
+  {id:'XM9141',clientName:'Alex Grim',clientEmail:'alexgrim@mail.com',clientAddress:{street:'84 Church Way',city:'Bradford',postCode:'BD1 9PB',country:'United Kingdom'},senderAddress:{street:'19 Union Terrace',city:'London',postCode:'E1 3EZ',country:'United Kingdom'},invoiceDate:'2021-08-21',paymentTerms:30,projectDescription:'Graphic Design',items:[{name:'Banner Design',quantity:1,price:156.00,total:156.00},{name:'Email Design',quantity:2,price:200.00,total:400.00}],status:'pending',total:556.00},
+  {id:'RG0314',clientName:'John Morrison',clientEmail:'jmorrison@mail.com',clientAddress:{street:'Apartement 120 Olney Road',city:'Blackburn',postCode:'BB1 1EW',country:'United Kingdom'},senderAddress:{street:'19 Union Terrace',city:'London',postCode:'E1 3EZ',country:'United Kingdom'},invoiceDate:'2021-09-24',paymentTerms:7,projectDescription:'Logo Concept',items:[{name:'Logo Sketches',quantity:1,price:102.04,total:102.04},{name:'Logo Prototype',quantity:3,price:500.00,total:1500.00},{name:'Logo Final',quantity:1,price:4100.29,total:4100.29},{name:'Email Template',quantity:2,price:1100.00,total:2200.00},{name:'Invoice',quantity:1,price:6100.00,total:6100.00}],status:'paid',total:14002.33},
+  {id:'RT2080',clientName:'Alysa Werner',clientEmail:'awerner@mail.com',clientAddress:{street:'2 Stratford Drive',city:'Bervington',postCode:'BU9 2WD',country:'United Kingdom'},senderAddress:{street:'19 Union Terrace',city:'London',postCode:'E1 3EZ',country:'United Kingdom'},invoiceDate:'2021-10-11',paymentTerms:1,projectDescription:'Re-branding',items:[{name:'New Logo',quantity:1,price:102.04,total:102.04}],status:'pending',total:102.04},
+  {id:'AA1449',clientName:'Mellisa Clarke',clientEmail:'mellisa.c@mail.com',clientAddress:{street:'79 Dover Road',city:'Westhall',postCode:'IV1 3NE',country:'United Kingdom'},senderAddress:{street:'19 Union Terrace',city:'London',postCode:'E1 3EZ',country:'United Kingdom'},invoiceDate:'2021-10-13',paymentTerms:1,projectDescription:'Logo and Art Direction',items:[{name:'Logo Design',quantity:1,price:102.04,total:102.04},{name:'Brand Guidelines',quantity:1,price:3930.29,total:3930.29}],status:'pending',total:4032.33},
+  {id:'TY9141',clientName:'Thomas Wayne',clientEmail:'thomas.wayne@mail.com',clientAddress:{street:'3 Whitedell Close',city:'Gotham',postCode:'G1 1AB',country:'United States'},senderAddress:{street:'19 Union Terrace',city:'London',postCode:'E1 3EZ',country:'United Kingdom'},invoiceDate:'2021-10-30',paymentTerms:1,projectDescription:'Website Redesign',items:[{name:'Wireframes',quantity:1,price:400.00,total:400.00},{name:'UI Design',quantity:1,price:3200.00,total:3200.00},{name:'CMS Integration',quantity:1,price:2555.91,total:2555.91}],status:'pending',total:6155.91},
+  {id:'FV2353',clientName:'Anita Wainwright',clientEmail:'anita.wainwright@mail.com',clientAddress:{street:'',city:'',postCode:'',country:''},senderAddress:{street:'19 Union Terrace',city:'London',postCode:'E1 3EZ',country:'United Kingdom'},invoiceDate:'2021-11-12',paymentTerms:7,projectDescription:'',items:[{name:'Motion Reel',quantity:1,price:3102.04,total:3102.04}],status:'draft',total:3102.04},
+];
+
+function genId(){
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const nums='0123456789';
+  return chars[Math.floor(Math.random()*26)]+chars[Math.floor(Math.random()*26)]+
+    nums[Math.floor(Math.random()*10)]+nums[Math.floor(Math.random()*10)]+
+    nums[Math.floor(Math.random()*10)]+nums[Math.floor(Math.random()*10)];
+}
+
+function addDays(dateStr,days){
+  const d=new Date(dateStr);
+  d.setDate(d.getDate()+days);
+  return d.toISOString().split('T')[0];
+}
+
+function fmtDate(dateStr){
+  if(!dateStr)return'';
+  const d=new Date(dateStr+'T00:00:00');
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function fmtMoney(n){
+  return'£ '+Number(n||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function StatusBadge({status}){
+  const styles={
+    paid:{bg:'var(--green-bg)',dot:'var(--green)',text:'var(--green)'},
+    pending:{bg:'var(--orange-bg)',dot:'var(--orange)',text:'var(--orange)'},
+    draft:{bg:'var(--draft-bg)',dot:'var(--draft-dot)',text:'var(--draft-text)'},
+  };
+  const s=styles[status]||styles.draft;
+  return(
+    <span style={{display:'inline-flex',alignItems:'center',gap:8,background:s.bg,borderRadius:6,padding:'8px 16px',minWidth:104}}>
+      <span style={{width:8,height:8,borderRadius:'50%',background:s.dot,opacity:status==='draft'?0.5:1}}/>
+      <span style={{fontSize:12,fontWeight:700,color:s.text,textTransform:'capitalize'}}>{status}</span>
+    </span>
+  );
+}
+
+// Sidebar
+function Sidebar({theme,toggleTheme}){
+  return(
+    <nav style={{
+      position:'fixed',top:0,left:0,
+      width:103,height:'100vh',
+      background:'var(--sidebar)',
+      display:'flex',flexDirection:'column',
+      alignItems:'center',justifyContent:'space-between',
+      zIndex:100,
+      borderRadius:'0 20px 20px 0',
+      overflow:'hidden',
+    }} aria-label="Main navigation">
+      <div style={{width:'100%',display:'flex',justifyContent:'center',paddingTop:0}}>
+        <div style={{
+          width:103,height:103,background:'var(--purple)',
+          borderRadius:'0 20px 20px 0',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          position:'relative',overflow:'hidden',
+          flexShrink:0,
+        }}>
+          <div style={{
+            position:'absolute',bottom:0,width:'100%',height:'50%',
+            background:'var(--purple-light)',borderRadius:'20px 0 20px 0',
+          }}/>
+          <svg style={{position:'relative',zIndex:1}} width="40" height="38" viewBox="0 0 40 38" fill="none">
+            <path fillRule="evenodd" clipRule="evenodd" d="M10.6942 0.693848H20.3002C25.8221 0.693848 30.3122 5.18459 30.3122 10.7065V20.3125C30.3122 25.8344 25.8221 30.3251 20.3002 30.3251H10.6942C5.17228 30.3251 0.682129 25.8344 0.682129 20.3125V10.7065C0.682129 5.18459 5.17228 0.693848 10.6942 0.693848Z" fill="white"/>
+            <path fillRule="evenodd" clipRule="evenodd" d="M19.6321 37.3064H29.2381C34.76 37.3064 39.2501 32.8156 39.2501 27.2937V17.6877C39.2501 12.1658 34.76 7.67505 29.2381 7.67505H19.6321C14.1102 7.67505 9.62012 12.1658 9.62012 17.6877V27.2937C9.62012 32.8156 14.1102 37.3064 19.6321 37.3064Z" fill="white" fillOpacity="0.15"/>
+          </svg>
+        </div>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:24,paddingBottom:24}}>
+        <button
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme==='dark'?'light':'dark'} mode`}
+          style={{background:'transparent',border:'none',padding:8,cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}
+        >
+          {theme==='dark'
+            ?<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="5" stroke="#858BB2" strokeWidth="1.5"/><line x1="10" y1="1" x2="10" y2="3.5" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="10" y1="16.5" x2="10" y2="19" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="1" y1="10" x2="3.5" y2="10" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="16.5" y1="10" x2="19" y2="10" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="3.22" y1="3.22" x2="4.99" y2="4.99" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="15.01" y1="15.01" x2="16.78" y2="16.78" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="3.22" y1="16.78" x2="4.99" y2="15.01" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="15.01" y1="4.99" x2="16.78" y2="3.22" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            :<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M19.5 11.5C18.19 14.81 14.9 17.17 11 17.17C5.77 17.17 1.5 12.9 1.5 7.67C1.5 3.77 3.86 0.48 7.17 -0.83C3.49 3.23 3.84 9.52 7.94 13.17C12.04 16.82 18.33 16.5 22 13C21.13 12.07 20.4 11.83 19.5 11.5Z" fill="#858BB2"/></svg>
+          }
+        </button>
+        <div style={{width:40,height:1,background:'rgba(255,255,255,0.1)'}}/>
+        <div style={{width:40,height:40,borderRadius:'50%',background:'#858BB2',overflow:'hidden',border:'2px solid transparent'}}>
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="14" r="7" fill="white" opacity="0.6"/>
+            <ellipse cx="20" cy="34" rx="12" ry="8" fill="white" opacity="0.6"/>
+          </svg>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// Mobile nav
+function MobileNav({theme,toggleTheme}){
+  return(
+    <nav style={{
+      position:'fixed',top:0,left:0,right:0,
+      height:72,background:'var(--sidebar)',
+      display:'flex',alignItems:'center',justifyContent:'space-between',
+      zIndex:100,paddingRight:24,
+    }}>
+      <div style={{
+        width:72,height:72,background:'var(--purple)',
+        borderRadius:'0 20px 20px 0',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        position:'relative',overflow:'hidden',
+        flexShrink:0,
+      }}>
+        <div style={{position:'absolute',bottom:0,width:'100%',height:'50%',background:'var(--purple-light)',borderRadius:'20px 0 20px 0'}}/>
+        <svg style={{position:'relative',zIndex:1}} width="28" height="26" viewBox="0 0 40 38" fill="none">
+          <path fillRule="evenodd" clipRule="evenodd" d="M10.6942 0.693848H20.3002C25.8221 0.693848 30.3122 5.18459 30.3122 10.7065V20.3125C30.3122 25.8344 25.8221 30.3251 20.3002 30.3251H10.6942C5.17228 30.3251 0.682129 25.8344 0.682129 20.3125V10.7065C0.682129 5.18459 5.17228 0.693848 10.6942 0.693848Z" fill="white"/>
+          <path fillRule="evenodd" clipRule="evenodd" d="M19.6321 37.3064H29.2381C34.76 37.3064 39.2501 32.8156 39.2501 27.2937V17.6877C39.2501 12.1658 34.76 7.67505 29.2381 7.67505H19.6321C14.1102 7.67505 9.62012 12.1658 9.62012 17.6877V27.2937C9.62012 32.8156 14.1102 37.3064 19.6321 37.3064Z" fill="white" fillOpacity="0.15"/>
+        </svg>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:24}}>
+        <button onClick={toggleTheme} aria-label="Toggle theme" style={{background:'transparent',border:'none',cursor:'pointer',padding:8,display:'flex',alignItems:'center'}}>
+          {theme==='dark'
+            ?<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="5" stroke="#858BB2" strokeWidth="1.5"/><line x1="10" y1="1" x2="10" y2="3.5" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="10" y1="16.5" x2="10" y2="19" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="1" y1="10" x2="3.5" y2="10" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="16.5" y1="10" x2="19" y2="10" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="3.22" y1="3.22" x2="4.99" y2="4.99" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="15.01" y1="15.01" x2="16.78" y2="16.78" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="3.22" y1="16.78" x2="4.99" y2="15.01" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/><line x1="15.01" y1="4.99" x2="16.78" y2="3.22" stroke="#858BB2" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            :<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M19.5 11.5C18.19 14.81 14.9 17.17 11 17.17C5.77 17.17 1.5 12.9 1.5 7.67C1.5 3.77 3.86 0.48 7.17 -0.83C3.49 3.23 3.84 9.52 7.94 13.17C12.04 16.82 18.33 16.5 22 13C21.13 12.07 20.4 11.83 19.5 11.5Z" fill="#858BB2"/></svg>
+          }
+        </button>
+        <div style={{width:32,height:32,borderRadius:'50%',background:'#858BB2',overflow:'hidden'}}>
+          <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="14" r="7" fill="white" opacity="0.6"/>
+            <ellipse cx="20" cy="34" rx="12" ry="8" fill="white" opacity="0.6"/>
+          </svg>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// Filter dropdown
+function FilterDropdown({filter,setFilter}){
+  const [open,setOpen]=useState(false);
+  const ref=useRef();
+  const opts=['all','draft','pending','paid'];
+  useEffect(()=>{
+    const h=(e)=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false)};
+    document.addEventListener('mousedown',h);
+    return()=>document.removeEventListener('mousedown',h);
+  },[]);
+  return(
+    <div ref={ref} style={{position:'relative'}}>
+      <button
+        onClick={()=>setOpen(o=>!o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={{
+          background:'transparent',border:'none',
+          display:'flex',alignItems:'center',gap:12,
+          color:'var(--text1)',fontSize:12,fontWeight:700,
+          padding:'8px 4px',
+        }}
+      >
+        <span className="hide-mobile">Filter by status</span>
+        <span className="show-mobile">Filter</span>
+        <svg width="11" height="7" viewBox="0 0 11 7" fill="none" style={{transform:open?'rotate(180deg)':'none',transition:'transform 0.2s'}}>
+          <path d="M1 1L5.5 5.5L10 1" stroke="#7C5DFA" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      </button>
+      {open&&(
+        <div role="listbox" style={{
+          position:'absolute',top:'calc(100% + 16px)',left:'50%',transform:'translateX(-50%)',
+          background:'var(--bg2)',borderRadius:8,padding:'24px',
+          boxShadow:'0 10px 20px rgba(0,0,0,0.25)',
+          minWidth:192,zIndex:200,
+        }}>
+          {opts.map(o=>(
+            <label key={o} style={{
+              display:'flex',alignItems:'center',gap:16,
+              cursor:'pointer',marginBottom:o==='paid'?0:16,
+              fontSize:12,fontWeight:700,color:'var(--text1)',
+              textTransform:'capitalize',
+            }}>
+              <span style={{
+                width:16,height:16,borderRadius:2,flexShrink:0,
+                background:filter===o?'var(--purple)':'transparent',
+                border:`1px solid ${filter===o?'var(--purple)':'var(--purple-dim)'}`,
+                display:'flex',alignItems:'center',justifyContent:'center',
+                transition:'all 0.15s',
+              }}>
+                {filter===o&&<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </span>
+              <input type="checkbox" checked={filter===o} onChange={()=>{setFilter(o);setOpen(false)}} style={{display:'none'}}/>
+              {o==='all'?'All':o}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Invoice list
+function InvoiceList({onSelect,onNew}){
+  const {invoices}=useContext(InvoiceCtx);
+  const [filter,setFilter]=useState('all');
+  const filtered=filter==='all'?invoices:invoices.filter(i=>i.status===filter);
+
+  return(
+    <div style={{padding:'72px 24px 24px',maxWidth:780,margin:'0 auto',width:'100%'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:40,marginTop:16}}>
+        <div>
+          <h1 style={{fontSize:32,fontWeight:700,color:'var(--text1)',letterSpacing:-1}}>Invoices</h1>
+          <p style={{fontSize:12,color:'var(--text2)',marginTop:4,fontWeight:500}}>
+            <span className="hide-mobile">
+              {filtered.length===0?'No invoices':`There are ${filtered.length} total invoice${filtered.length!==1?'s':''}`}
+            </span>
+            <span className="show-mobile">
+              {filtered.length} invoice{filtered.length!==1?'s':''}
+            </span>
+          </p>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:24}}>
+          <FilterDropdown filter={filter} setFilter={setFilter}/>
+          <button
+            onClick={onNew}
+            style={{
+              background:'var(--purple)',color:'white',
+              borderRadius:24,padding:'16px 15px 16px 8px',
+              display:'flex',alignItems:'center',gap:8,
+              fontSize:12,fontWeight:700,letterSpacing:-0.25,
+            }}
+            onMouseEnter={e=>e.currentTarget.style.background='var(--purple-light)'}
+            onMouseLeave={e=>e.currentTarget.style.background='var(--purple)'}
+          >
+            <span style={{
+              width:32,height:32,borderRadius:'50%',background:'white',
+              display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,
+            }}>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                <path d="M6.313 10.023V6.312H10.023V4.688H6.313V0.977H4.688V4.688H0.977V6.312H4.688V10.023H6.313Z" fill="#7C5DFA"/>
+              </svg>
+            </span>
+            <span className="hide-mobile">New Invoice</span>
+            <span className="show-mobile">New</span>
+          </button>
+        </div>
+      </div>
+
+      {filtered.length===0?(
+        <div style={{textAlign:'center',paddingTop:80}}>
+          <svg width="242" height="200" viewBox="0 0 242 200" fill="none" style={{marginBottom:40,opacity:0.5}}>
+            <ellipse cx="121" cy="175" rx="60" ry="14" fill="var(--border)" opacity="0.5"/>
+            <rect x="60" y="20" width="122" height="150" rx="8" fill="var(--card)" stroke="var(--border)" strokeWidth="1"/>
+            <rect x="76" y="40" width="90" height="8" rx="4" fill="var(--border)"/>
+            <rect x="76" y="60" width="60" height="6" rx="3" fill="var(--border)" opacity="0.6"/>
+            <rect x="76" y="90" width="90" height="6" rx="3" fill="var(--border)" opacity="0.4"/>
+            <rect x="76" y="106" width="70" height="6" rx="3" fill="var(--border)" opacity="0.4"/>
+            <circle cx="121" cy="148" r="12" fill="var(--purple)" opacity="0.2"/>
+          </svg>
+          <h2 style={{fontSize:20,fontWeight:700,color:'var(--text1)',marginBottom:16}}>Nothing here</h2>
+          <p style={{fontSize:13,color:'var(--text2)',maxWidth:220,margin:'0 auto',lineHeight:1.7}}>
+            Create an invoice by clicking the <strong>New Invoice</strong> button and get started
+          </p>
+        </div>
+      ):(
+        <ul style={{listStyle:'none',display:'flex',flexDirection:'column',gap:16}}>
+          {filtered.map(inv=>(
+            <li key={inv.id}>
+              <button
+                onClick={()=>onSelect(inv.id)}
+                style={{
+                  width:'100%',background:'var(--card)',
+                  border:'1px solid transparent',borderRadius:8,
+                  padding:'16px 24px',display:'grid',cursor:'pointer',
+                  alignItems:'center',textAlign:'left',color:'inherit',
+                }}
+                className="invoice-card"
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--purple)'}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='transparent'}}
+              >
+                <InvoiceCardContent inv={inv}/>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function InvoiceCardContent({inv}){
+  const due=addDays(inv.invoiceDate,inv.paymentTerms);
+  const isDesktop=window.innerWidth>=768;
+  if(isDesktop){
+    return(
+      <div style={{display:'grid',gridTemplateColumns:'auto 1fr auto auto auto auto',alignItems:'center',gap:8}}>
+        <span style={{fontSize:12,fontWeight:700,color:'var(--text1)',marginRight:16}}>
+          <span style={{color:'var(--text3)'}}>#</span>{inv.id}
+        </span>
+        <span style={{fontSize:12,color:'var(--text2)',fontWeight:500}}>Due {fmtDate(due)}</span>
+        <span style={{fontSize:12,color:'var(--text2)',fontWeight:500,textAlign:'center',minWidth:120}}>{inv.clientName}</span>
+        <span style={{fontSize:16,fontWeight:700,color:'var(--text1)',textAlign:'right',minWidth:100}}>{fmtMoney(inv.total)}</span>
+        <div style={{display:'flex',justifyContent:'center',minWidth:110,marginLeft:8}}>
+          <StatusBadge status={inv.status}/>
+        </div>
+        <svg width="7" height="10" viewBox="0 0 7 10" fill="none" style={{marginLeft:4}}>
+          <path d="M1 1L5 5L1 9" stroke="#7C5DFA" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      </div>
+    );
+  }
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+        <span style={{fontSize:12,fontWeight:700}}><span style={{color:'var(--text3)'}}>#</span>{inv.id}</span>
+        <span style={{fontSize:12,color:'var(--text2)'}}>{inv.clientName}</span>
+      </div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
+        <div>
+          <p style={{fontSize:12,color:'var(--text2)',marginBottom:8}}>Due {fmtDate(due)}</p>
+          <p style={{fontSize:16,fontWeight:700}}>{fmtMoney(inv.total)}</p>
+        </div>
+        <StatusBadge status={inv.status}/>
+      </div>
+    </div>
+  );
+}
+
+// Invoice Detail
+function InvoiceDetail({id,onBack,onEdit,onDelete,onMarkPaid}){
+  const {invoices}=useContext(InvoiceCtx);
+  const inv=invoices.find(i=>i.id===id);
+  const [showDelete,setShowDelete]=useState(false);
+  if(!inv)return null;
+  const due=addDays(inv.invoiceDate,inv.paymentTerms);
+
+  return(
+    <div style={{padding:'72px 24px 24px',maxWidth:780,margin:'0 auto',width:'100%'}}>
+      <button
+        onClick={onBack}
+        style={{background:'transparent',border:'none',color:'var(--text1)',fontSize:12,fontWeight:700,display:'flex',alignItems:'center',gap:12,marginBottom:32,marginTop:16,cursor:'pointer'}}
+        onMouseEnter={e=>e.currentTarget.style.color='var(--text3)'}
+        onMouseLeave={e=>e.currentTarget.style.color='var(--text1)'}
+      >
+        <svg width="7" height="10" viewBox="0 0 7 10" fill="none">
+          <path d="M6 1L2 5L6 9" stroke="#7C5DFA" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+        Go back
+      </button>
+
+      <div style={{background:'var(--card)',borderRadius:8,padding:'20px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap',gap:16}}>
+        <div style={{display:'flex',alignItems:'center',gap:16}}>
+          <span style={{fontSize:12,color:'var(--text2)',fontWeight:500}}>Status</span>
+          <StatusBadge status={inv.status}/>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}} className="detail-actions">
+          {inv.status!=='paid'&&(
+            <button
+              onClick={()=>onEdit(id)}
+              style={{background:'var(--purple-dim)',color:'var(--text3)',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+              onMouseEnter={e=>{e.currentTarget.style.background='var(--border)'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='var(--purple-dim)'}}
+            >Edit</button>
+          )}
+          <button
+            onClick={()=>setShowDelete(true)}
+            style={{background:'var(--red)',color:'white',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+            onMouseEnter={e=>{e.currentTarget.style.background='var(--red-light)'}}
+            onMouseLeave={e=>{e.currentTarget.style.background='var(--red)'}}
+          >Delete</button>
+          {inv.status==='pending'&&(
+            <button
+              onClick={()=>onMarkPaid(id)}
+              style={{background:'var(--purple)',color:'white',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+              onMouseEnter={e=>{e.currentTarget.style.background='var(--purple-light)'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='var(--purple)'}}
+            >Mark as Paid</button>
+          )}
+        </div>
+      </div>
+
+      <div style={{background:'var(--card)',borderRadius:8,padding:'48px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:24,marginBottom:48}}>
+          <div>
+            <p style={{fontSize:16,fontWeight:700,marginBottom:4}}><span style={{color:'var(--text3)'}}>#</span>{inv.id}</p>
+            <p style={{fontSize:12,color:'var(--text2)'}}>{inv.projectDescription||'No description'}</p>
+          </div>
+          <div style={{textAlign:'right',fontSize:12,color:'var(--text2)',lineHeight:1.8}}>
+            <p>{inv.senderAddress.street}</p>
+            <p>{inv.senderAddress.city}</p>
+            <p>{inv.senderAddress.postCode}</p>
+            <p>{inv.senderAddress.country}</p>
+          </div>
+        </div>
+
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:32,marginBottom:48}}>
+          <div>
+            <p style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>Invoice Date</p>
+            <p style={{fontSize:15,fontWeight:700}}>{fmtDate(inv.invoiceDate)}</p>
+          </div>
+          <div>
+            <p style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>Payment Due</p>
+            <p style={{fontSize:15,fontWeight:700}}>{fmtDate(due)}</p>
+          </div>
+          <div>
+            <p style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>Bill To</p>
+            <p style={{fontSize:15,fontWeight:700,marginBottom:8}}>{inv.clientName}</p>
+            <div style={{fontSize:12,color:'var(--text2)',lineHeight:1.8}}>
+              <p>{inv.clientAddress.street}</p>
+              <p>{inv.clientAddress.city}</p>
+              <p>{inv.clientAddress.postCode}</p>
+              <p>{inv.clientAddress.country}</p>
+            </div>
+          </div>
+          <div>
+            <p style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>Sent to</p>
+            <p style={{fontSize:15,fontWeight:700}}>{inv.clientEmail}</p>
+          </div>
+        </div>
+
+        <div style={{background:'var(--bg1)',borderRadius:'8px 8px 0 0',padding:'32px',overflow:'hidden'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr auto auto auto',gap:16,marginBottom:24,color:'var(--text2)',fontSize:12}}>
+            <span>Item Name</span>
+            <span style={{textAlign:'center',minWidth:40}}>QTY.</span>
+            <span style={{textAlign:'right',minWidth:70}}>Price</span>
+            <span style={{textAlign:'right',minWidth:70}}>Total</span>
+          </div>
+          {inv.items.map((item,i)=>(
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr auto auto auto',gap:16,marginBottom:16,alignItems:'center'}}>
+              <span style={{fontSize:12,fontWeight:700}}>{item.name}</span>
+              <span style={{textAlign:'center',minWidth:40,fontSize:12,color:'var(--text2)',fontWeight:700}}>{item.quantity}</span>
+              <span style={{textAlign:'right',minWidth:70,fontSize:12,color:'var(--text2)',fontWeight:700}}>{fmtMoney(item.price)}</span>
+              <span style={{textAlign:'right',minWidth:70,fontSize:12,fontWeight:700}}>{fmtMoney(item.total)}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{background:'var(--total-bg)',borderRadius:'0 0 8px 8px',padding:'24px 32px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <span style={{fontSize:12,color:'var(--total-text)',opacity:0.8}}>Amount Due</span>
+          <span style={{fontSize:24,fontWeight:700,color:'var(--total-text)'}}>{fmtMoney(inv.total)}</span>
+        </div>
+      </div>
+
+      {showDelete&&(
+        <DeleteModal
+          id={id}
+          onCancel={()=>setShowDelete(false)}
+          onConfirm={()=>{onDelete(id);setShowDelete(false);}}
+        />
+      )}
+    </div>
+  );
+}
+
+// Delete modal
+function DeleteModal({id,onCancel,onConfirm}){
+  const ref=useRef();
+  useEffect(()=>{
+    const h=(e)=>{if(e.key==='Escape')onCancel()};
+    document.addEventListener('keydown',h);
+    ref.current?.focus();
+    return()=>document.removeEventListener('keydown',h);
+  },[]);
+  return(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="del-title"
+      style={{position:'fixed',inset:0,background:'var(--modal-overlay)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:500,padding:24}}
+    >
+      <div ref={ref} tabIndex={-1} style={{background:'var(--bg2)',borderRadius:8,padding:'48px',maxWidth:480,width:'100%',outline:'none'}}>
+        <h2 id="del-title" style={{fontSize:24,fontWeight:700,color:'var(--text1)',marginBottom:16}}>Confirm Deletion</h2>
+        <p style={{fontSize:13,color:'var(--text2)',lineHeight:1.7,marginBottom:24}}>
+          Are you sure you want to delete invoice #{id}? This action cannot be undone.
+        </p>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+          <button
+            onClick={onCancel}
+            style={{background:'var(--purple-dim)',color:'var(--text3)',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+            onMouseEnter={e=>{e.currentTarget.style.background='var(--border)'}}
+            onMouseLeave={e=>{e.currentTarget.style.background='var(--purple-dim)'}}
+          >Cancel</button>
+          <button
+            onClick={onConfirm}
+            style={{background:'var(--red)',color:'white',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+            onMouseEnter={e=>{e.currentTarget.style.background='var(--red-light)'}}
+            onMouseLeave={e=>{e.currentTarget.style.background='var(--red)'}}
+          >Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Invoice Form
+const EMPTY_FORM={
+  senderStreet:'',senderCity:'',senderPostCode:'',senderCountry:'',
+  clientName:'',clientEmail:'',clientStreet:'',clientCity:'',clientPostCode:'',clientCountry:'',
+  invoiceDate:new Date().toISOString().split('T')[0],
+  paymentTerms:30,projectDescription:'',
+  items:[{name:'',quantity:1,price:0,total:0}],
+};
+
+function InvoiceForm({editId,onClose}){
+  const {invoices,addInvoice,updateInvoice}=useContext(InvoiceCtx);
+  const existing=editId?invoices.find(i=>i.id===editId):null;
+
+  const initForm=()=>{
+    if(!existing)return EMPTY_FORM;
+    return{
+      senderStreet:existing.senderAddress.street,senderCity:existing.senderAddress.city,
+      senderPostCode:existing.senderAddress.postCode,senderCountry:existing.senderAddress.country,
+      clientName:existing.clientName,clientEmail:existing.clientEmail,
+      clientStreet:existing.clientAddress.street,clientCity:existing.clientAddress.city,
+      clientPostCode:existing.clientAddress.postCode,clientCountry:existing.clientAddress.country,
+      invoiceDate:existing.invoiceDate,paymentTerms:existing.paymentTerms,
+      projectDescription:existing.projectDescription,
+      items:existing.items.map(i=>({...i})),
+    };
+  };
+
+  const [form,setForm]=useState(initForm);
+  const [errors,setErrors]=useState({});
+  const overlayRef=useRef();
+
+  useEffect(()=>{
+    const h=(e)=>{if(e.key==='Escape')onClose()};
+    document.addEventListener('keydown',h);
+    return()=>document.removeEventListener('keydown',h);
+  },[]);
+
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const setItem=(i,k,v)=>{
+    const items=[...form.items];
+    items[i]={...items[i],[k]:v};
+    if(k==='quantity'||k==='price'){
+      items[i].total=Number(items[i].quantity||0)*Number(items[i].price||0);
+    }
+    setForm(f=>({...f,items}));
+  };
+  const addItem=()=>setForm(f=>({...f,items:[...f.items,{name:'',quantity:1,price:0,total:0}]}));
+  const removeItem=(i)=>setForm(f=>({...f,items:f.items.filter((_,idx)=>idx!==i)}));
+
+  const validate=()=>{
+    const e={};
+    if(!form.clientName.trim())e.clientName='Required';
+    if(!form.clientEmail.trim()||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.clientEmail))e.clientEmail='Valid email required';
+    if(!form.senderStreet.trim())e.senderStreet='Required';
+    if(!form.clientStreet.trim())e.clientStreet='Required';
+    if(form.items.length===0)e.items='At least one item required';
+    form.items.forEach((item,i)=>{
+      if(!item.name.trim())e[`item_name_${i}`]='Required';
+      if(Number(item.quantity)<=0)e[`item_qty_${i}`]='Must be > 0';
+      if(Number(item.price)<0)e[`item_price_${i}`]='Must be >= 0';
+    });
+    return e;
+  };
+
+  const buildInvoice=(status)=>{
+    const total=form.items.reduce((s,i)=>s+i.total,0);
+    return{
+      id:existing?existing.id:genId(),
+      clientName:form.clientName,clientEmail:form.clientEmail,
+      clientAddress:{street:form.clientStreet,city:form.clientCity,postCode:form.clientPostCode,country:form.clientCountry},
+      senderAddress:{street:form.senderStreet,city:form.senderCity,postCode:form.senderPostCode,country:form.senderCountry},
+      invoiceDate:form.invoiceDate,paymentTerms:Number(form.paymentTerms),
+      projectDescription:form.projectDescription,
+      items:form.items.map(i=>({...i,quantity:Number(i.quantity),price:Number(i.price),total:Number(i.total)})),
+      status,total,
+    };
+  };
+
+  const handleSend=()=>{
+    const e=validate();
+    if(Object.keys(e).length){setErrors(e);return;}
+    const inv=buildInvoice('pending');
+    existing?updateInvoice(inv):addInvoice(inv);
+    onClose();
+  };
+  const handleDraft=()=>{
+    const inv=buildInvoice('draft');
+    existing?updateInvoice(inv):addInvoice(inv);
+    onClose();
+  };
+
+  const total=form.items.reduce((s,i)=>s+Number(i.total||0),0);
+
+  return(
+    <div
+      ref={overlayRef}
+      style={{position:'fixed',inset:0,zIndex:300,display:'flex'}}
+      onClick={(e)=>{if(e.target===overlayRef.current)onClose();}}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={editId?'Edit invoice':'New invoice'}
+        style={{
+          background:'var(--bg2)',
+          width:'min(616px, 100vw)',
+          height:'100vh',
+          overflowY:'auto',
+          padding:'72px 40px 40px',
+          boxShadow:'0 0 0 1000px rgba(0,0,0,0.5)',
+        }}
+      >
+        {editId?(
+          <h2 style={{fontSize:24,fontWeight:700,marginBottom:48}}>Edit <span style={{color:'var(--text3)'}}>#</span>{editId}</h2>
+        ):(
+          <h2 style={{fontSize:24,fontWeight:700,marginBottom:48}}>New Invoice</h2>
+        )}
+
+        <section style={{marginBottom:40}}>
+          <p style={{fontSize:12,fontWeight:700,color:'var(--purple)',marginBottom:24}}>Bill From</p>
+          <div style={{marginBottom:24}}>
+            <label htmlFor="senderStreet">Street Address</label>
+            <input id="senderStreet" value={form.senderStreet} onChange={e=>set('senderStreet',e.target.value)} className={errors.senderStreet?'error':''}/>
+            {errors.senderStreet&&<p style={{fontSize:10,color:'var(--red)',marginTop:4}}>{errors.senderStreet}</p>}
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16}}>
+            <div>
+              <label htmlFor="senderCity">City</label>
+              <input id="senderCity" value={form.senderCity} onChange={e=>set('senderCity',e.target.value)}/>
+            </div>
+            <div>
+              <label htmlFor="senderPostCode">Post Code</label>
+              <input id="senderPostCode" value={form.senderPostCode} onChange={e=>set('senderPostCode',e.target.value)}/>
+            </div>
+            <div>
+              <label htmlFor="senderCountry">Country</label>
+              <input id="senderCountry" value={form.senderCountry} onChange={e=>set('senderCountry',e.target.value)}/>
+            </div>
+          </div>
+        </section>
+
+        <section style={{marginBottom:40}}>
+          <p style={{fontSize:12,fontWeight:700,color:'var(--purple)',marginBottom:24}}>Bill To</p>
+          <div style={{marginBottom:24}}>
+            <label htmlFor="clientName">Client's Name</label>
+            <input id="clientName" value={form.clientName} onChange={e=>set('clientName',e.target.value)} className={errors.clientName?'error':''}/>
+            {errors.clientName&&<p style={{fontSize:10,color:'var(--red)',marginTop:4}}>{errors.clientName}</p>}
+          </div>
+          <div style={{marginBottom:24}}>
+            <label htmlFor="clientEmail">Client's Email</label>
+            <input id="clientEmail" type="email" value={form.clientEmail} onChange={e=>set('clientEmail',e.target.value)} className={errors.clientEmail?'error':''}/>
+            {errors.clientEmail&&<p style={{fontSize:10,color:'var(--red)',marginTop:4}}>{errors.clientEmail}</p>}
+          </div>
+          <div style={{marginBottom:24}}>
+            <label htmlFor="clientStreet">Street Address</label>
+            <input id="clientStreet" value={form.clientStreet} onChange={e=>set('clientStreet',e.target.value)} className={errors.clientStreet?'error':''}/>
+            {errors.clientStreet&&<p style={{fontSize:10,color:'var(--red)',marginTop:4}}>{errors.clientStreet}</p>}
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16}}>
+            <div>
+              <label htmlFor="clientCity">City</label>
+              <input id="clientCity" value={form.clientCity} onChange={e=>set('clientCity',e.target.value)}/>
+            </div>
+            <div>
+              <label htmlFor="clientPostCode">Post Code</label>
+              <input id="clientPostCode" value={form.clientPostCode} onChange={e=>set('clientPostCode',e.target.value)}/>
+            </div>
+            <div>
+              <label htmlFor="clientCountry">Country</label>
+              <input id="clientCountry" value={form.clientCountry} onChange={e=>set('clientCountry',e.target.value)}/>
+            </div>
+          </div>
+        </section>
+
+        <section style={{marginBottom:40}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,marginBottom:24}}>
+            <div>
+              <label htmlFor="invoiceDate">Invoice Date</label>
+              <input id="invoiceDate" type="date" value={form.invoiceDate} onChange={e=>set('invoiceDate',e.target.value)}/>
+            </div>
+            <div>
+              <label htmlFor="paymentTerms">Payment Terms</label>
+              <select id="paymentTerms" value={form.paymentTerms} onChange={e=>set('paymentTerms',Number(e.target.value))}>
+                <option value={1}>Net 1 Day</option>
+                <option value={7}>Net 7 Days</option>
+                <option value={14}>Net 14 Days</option>
+                <option value={30}>Net 30 Days</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="projectDescription">Project Description</label>
+            <input id="projectDescription" value={form.projectDescription} onChange={e=>set('projectDescription',e.target.value)} placeholder="e.g. Graphic Design Service"/>
+          </div>
+        </section>
+
+        <section style={{marginBottom:40}}>
+          <h3 style={{fontSize:18,fontWeight:700,color:'#777F98',marginBottom:24}}>Item List</h3>
+          {errors.items&&<p style={{fontSize:10,color:'var(--red)',marginBottom:12}}>{errors.items}</p>}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 60px 90px 90px 20px',gap:8,marginBottom:8,alignItems:'center'}}>
+            <label style={{margin:0}}>Item Name</label>
+            <label style={{margin:0,textAlign:'center'}}>Qty.</label>
+            <label style={{margin:0,textAlign:'center'}}>Price</label>
+            <label style={{margin:0,textAlign:'center'}}>Total</label>
+            <span/>
+          </div>
+          {form.items.map((item,i)=>(
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 60px 90px 90px 20px',gap:8,marginBottom:16,alignItems:'center'}}>
+              <input
+                aria-label="Item name"
+                value={item.name}
+                onChange={e=>setItem(i,'name',e.target.value)}
+                className={errors[`item_name_${i}`]?'error':''}
+              />
+              <input
+                aria-label="Quantity"
+                type="number" min="1"
+                value={item.quantity}
+                onChange={e=>setItem(i,'quantity',e.target.value)}
+                style={{textAlign:'center'}}
+                className={errors[`item_qty_${i}`]?'error':''}
+              />
+              <input
+                aria-label="Price"
+                type="number" min="0" step="0.01"
+                value={item.price}
+                onChange={e=>setItem(i,'price',e.target.value)}
+                style={{textAlign:'right'}}
+                className={errors[`item_price_${i}`]?'error':''}
+              />
+              <input
+                aria-label="Total"
+                readOnly
+                value={Number(item.total||0).toFixed(2)}
+                style={{textAlign:'right',background:'transparent',border:'none',color:'var(--text2)',cursor:'default'}}
+              />
+              <button
+                onClick={()=>removeItem(i)}
+                aria-label={`Remove item ${item.name||i+1}`}
+                style={{background:'transparent',border:'none',cursor:'pointer',padding:4,display:'flex',alignItems:'center',justifyContent:'center'}}
+              >
+                <svg width="13" height="16" viewBox="0 0 13 16" fill="none">
+                  <path d="M11.583 3.556h-2.99l-.872-1.455A1 1 0 007 1.5H5.5a1 1 0 00-.72.601L3.908 3.556H.917a.25.25 0 00-.25.25v.5a.25.25 0 00.25.25h.583V14a1 1 0 001 1h8a1 1 0 001-1V4.556h.583a.25.25 0 00.25-.25v-.5a.25.25 0 00-.25-.25z" fill="#888EB0"/>
+                </svg>
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={addItem}
+            style={{width:'100%',background:'var(--purple-dim)',color:'var(--text3)',borderRadius:24,padding:'16px',fontSize:12,fontWeight:700,marginTop:8}}
+            onMouseEnter={e=>{e.currentTarget.style.background='var(--border)'}}
+            onMouseLeave={e=>{e.currentTarget.style.background='var(--purple-dim)'}}
+          >+ Add New Item</button>
+        </section>
+
+        {Object.keys(errors).length>0&&(
+          <div style={{marginBottom:24}}>
+            <p style={{fontSize:10,color:'var(--red)',fontWeight:700}}>- All fields must be added</p>
+            {form.items.length===0&&<p style={{fontSize:10,color:'var(--red)'}}>- An item must be added</p>}
+          </div>
+        )}
+
+        <div style={{display:'flex',gap:8,justifyContent:'space-between',flexWrap:'wrap',position:'sticky',bottom:0,background:'var(--bg2)',padding:'16px 0'}}>
+          {!editId&&(
+            <button
+              onClick={onClose}
+              style={{background:'var(--purple-dim)',color:'var(--text3)',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+              onMouseEnter={e=>{e.currentTarget.style.background='var(--border)'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='var(--purple-dim)'}}
+            >Discard</button>
+          )}
+          <div style={{display:'flex',gap:8,marginLeft:'auto'}}>
+            {editId?(
+              <button
+                onClick={onClose}
+                style={{background:'var(--purple-dim)',color:'var(--text3)',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+                onMouseEnter={e=>{e.currentTarget.style.background='var(--border)'}}
+                onMouseLeave={e=>{e.currentTarget.style.background='var(--purple-dim)'}}
+              >Cancel</button>
+            ):(
+              <button
+                onClick={handleDraft}
+                style={{background:'var(--draft-bg)',color:'var(--draft-text)',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+                onMouseEnter={e=>{e.currentTarget.style.opacity='0.8'}}
+                onMouseLeave={e=>{e.currentTarget.style.opacity='1'}}
+              >Save as Draft</button>
+            )}
+            <button
+              onClick={handleSend}
+              style={{background:'var(--purple)',color:'white',borderRadius:24,padding:'16px 24px',fontSize:12,fontWeight:700}}
+              onMouseEnter={e=>{e.currentTarget.style.background='var(--purple-light)'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='var(--purple)'}}
+            >{editId?'Save Changes':'Save & Send'}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Provider
+function InvoiceProvider({children}){
+  const [invoices,setInvoices]=useState(()=>{
+    try{
+      const s=localStorage.getItem('invoiceflow_v1');
+      return s?JSON.parse(s):SEED;
+    }catch{return SEED;}
+  });
+
+  useEffect(()=>{
+    try{localStorage.setItem('invoiceflow_v1',JSON.stringify(invoices));}catch{}
+  },[invoices]);
+
+  const addInvoice=(inv)=>setInvoices(all=>[inv,...all]);
+  const updateInvoice=(inv)=>setInvoices(all=>all.map(i=>i.id===inv.id?inv:i));
+  const deleteInvoice=(id)=>setInvoices(all=>all.filter(i=>i.id!==id));
+  const markPaid=(id)=>setInvoices(all=>all.map(i=>i.id===id?{...i,status:'paid'}:i));
+
+  return(
+    <InvoiceCtx.Provider value={{invoices,addInvoice,updateInvoice,deleteInvoice,markPaid}}>
+      {children}
+    </InvoiceCtx.Provider>
+  );
+}
+
+// App
+function App(){
+  const [theme,setTheme]=useState(()=>localStorage.getItem('invoiceflow_theme')||'light');
+  const [view,setView]=useState('list'); // list | detail | form
+  const [selectedId,setSelectedId]=useState(null);
+  const [editId,setEditId]=useState(null);
+  const [formOpen,setFormOpen]=useState(false);
+  const isMobile=window.innerWidth<768;
+
+  useEffect(()=>{
+    document.documentElement.setAttribute('data-theme',theme);
+    localStorage.setItem('invoiceflow_theme',theme);
+  },[theme]);
+
+  const toggleTheme=()=>setTheme(t=>t==='dark'?'light':'dark');
+
+  const handleSelect=(id)=>{setSelectedId(id);setView('detail');};
+  const handleBack=()=>{setView('list');setSelectedId(null);};
+  const handleNew=()=>{setEditId(null);setFormOpen(true);};
+  const handleEdit=(id)=>{setEditId(id);setFormOpen(true);};
+  const handleCloseForm=()=>{setFormOpen(false);setEditId(null);};
+
+  const {deleteInvoice,markPaid}=useContext(InvoiceCtx);
+
+  const handleDelete=(id)=>{
+    deleteInvoice(id);
+    handleBack();
+  };
+  const handleMarkPaid=(id)=>{
+    markPaid(id);
+    setView('detail');
+  };
+
+  const navProps={theme,toggleTheme};
+
+  return(
+    <div style={{display:'flex',minHeight:'100vh'}}>
+      <style>{`
+        @media(min-width:768px){
+          .show-mobile{display:none!important}
+          .hide-mobile{display:inline!important}
+          .invoice-card{grid-template-columns:auto 1fr auto auto auto auto}
+        }
+        @media(max-width:767px){
+          .show-mobile{display:inline!important}
+          .hide-mobile{display:none!important}
+          .detail-actions button{padding:12px 16px!important;font-size:11px!important}
+        }
+        .show-mobile{display:none}
+        .hide-mobile{display:inline}
+        @media(min-width:768px){
+          #main-layout{padding-left:103px!important;padding-top:0!important}
+          #sidebar-desktop{display:flex!important}
+          #nav-mobile{display:none!important}
+        }
+        @media(max-width:767px){
+          #sidebar-desktop{display:none!important}
+          #nav-mobile{display:flex!important}
+          #main-layout{padding-left:0!important;padding-top:72px!important}
+        }
+      `}</style>
+      <div id="sidebar-desktop" style={{display:'flex'}}>
+        <Sidebar {...navProps}/>
+      </div>
+      <div id="nav-mobile" style={{display:'none'}}>
+        <MobileNav {...navProps}/>
+      </div>
+      <main id="main-layout" style={{flex:1,minHeight:'100vh',background:'var(--bg1)',paddingLeft:103,transition:'background var(--transition)'}}>
+        {view==='list'&&(
+          <InvoiceList onSelect={handleSelect} onNew={handleNew}/>
+        )}
+        {view==='detail'&&selectedId&&(
+          <InvoiceDetail
+            id={selectedId}
+            onBack={handleBack}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onMarkPaid={handleMarkPaid}
+          />
+        )}
+      </main>
+      {formOpen&&(
+        <InvoiceForm editId={editId} onClose={handleCloseForm}/>
+      )}
+    </div>
+  );
+}
+
+function Root(){
+  return(
+    <InvoiceProvider>
+      <AppWithContext/>
+    </InvoiceProvider>
+  );
+}
+
+function AppWithContext(){
+  const [theme,setTheme]=useState(()=>localStorage.getItem('invoiceflow_theme')||'light');
+  const [view,setView]=useState('list');
+  const [selectedId,setSelectedId]=useState(null);
+  const [editId,setEditId]=useState(null);
+  const [formOpen,setFormOpen]=useState(false);
+  const {deleteInvoice,markPaid}=useContext(InvoiceCtx);
+
+  useEffect(()=>{
+    document.documentElement.setAttribute('data-theme',theme);
+    localStorage.setItem('invoiceflow_theme',theme);
+  },[theme]);
+
+  const toggleTheme=()=>setTheme(t=>t==='dark'?'light':'dark');
+  const handleSelect=(id)=>{setSelectedId(id);setView('detail');};
+  const handleBack=()=>{setView('list');setSelectedId(null);};
+  const handleNew=()=>{setEditId(null);setFormOpen(true);};
+  const handleEdit=(id)=>{setEditId(id);setFormOpen(true);};
+  const handleCloseForm=()=>{setFormOpen(false);setEditId(null);};
+  const handleDelete=(id)=>{deleteInvoice(id);handleBack();};
+  const handleMarkPaid=(id)=>{markPaid(id);};
+
+  const navProps={theme,toggleTheme};
+
+  return(
+    <div style={{display:'flex',minHeight:'100vh'}}>
+      <style>{`
+        @media(min-width:768px){
+          .show-mobile{display:none!important}
+          .hide-mobile{display:inline!important}
+        }
+        @media(max-width:767px){
+          .show-mobile{display:inline!important}
+          .hide-mobile{display:none!important}
+          .detail-actions button{padding:12px 16px!important;font-size:11px!important}
+        }
+        .show-mobile{display:none}
+        .hide-mobile{display:inline}
+        @media(min-width:768px){
+          #main-layout{padding-left:103px!important;padding-top:0!important}
+          #sidebar-desktop{display:flex!important}
+          #nav-mobile{display:none!important}
+        }
+        @media(max-width:767px){
+          #sidebar-desktop{display:none!important}
+          #nav-mobile{display:flex!important}
+          #main-layout{padding-left:0!important;padding-top:72px!important}
+        }
+      `}</style>
+      <div id="sidebar-desktop" style={{display:'flex'}}>
+        <Sidebar {...navProps}/>
+      </div>
+      <div id="nav-mobile" style={{display:'none'}}>
+        <MobileNav {...navProps}/>
+      </div>
+      <main id="main-layout" style={{flex:1,minHeight:'100vh',background:'var(--bg1)',paddingLeft:103,transition:'background 0.2s'}}>
+        {view==='list'&&<InvoiceList onSelect={handleSelect} onNew={handleNew}/>}
+        {view==='detail'&&selectedId&&(
+          <InvoiceDetail
+            id={selectedId}
+            onBack={handleBack}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onMarkPaid={handleMarkPaid}
+          />
+        )}
+      </main>
+      {formOpen&&<InvoiceForm editId={editId} onClose={handleCloseForm}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
+</script>
+</body>
+</html>
