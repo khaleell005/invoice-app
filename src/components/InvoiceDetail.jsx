@@ -16,6 +16,7 @@ export default function InvoiceDetail({ id, onBack, onEdit, onDelete, onMarkPaid
 
   return (
     <div
+      className="invoice-detail-container"
       style={{
         padding: '72px 24px 24px',
         maxWidth: 780,
@@ -53,6 +54,7 @@ export default function InvoiceDetail({ id, onBack, onEdit, onDelete, onMarkPaid
       </button>
 
       <div
+        className="invoice-detail-actions"
         style={{
           background: 'var(--card)',
           borderRadius: 8,
@@ -131,6 +133,7 @@ export default function InvoiceDetail({ id, onBack, onEdit, onDelete, onMarkPaid
       </div>
 
       <div
+        className="invoice-detail-card"
         style={{
           background: 'var(--card)',
           borderRadius: 8,

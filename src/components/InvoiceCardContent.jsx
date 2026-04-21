@@ -1,9 +1,19 @@
+import { useState, useEffect } from 'react';
 import StatusBadge from './StatusBadge';
 import { addDays, formatDate, formatMoney } from '../data/seedData';
 
 export default function InvoiceCardContent({ inv }) {
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const due = addDays(inv.invoiceDate, inv.paymentTerms);
-  const isDesktop = window.innerWidth >= 768;
 
   if (isDesktop) {
     return (

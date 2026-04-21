@@ -172,6 +172,75 @@ button {
     padding: 12px 16px !important;
     font-size: 11px !important;
   }
+  .invoice-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .invoice-form-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .invoice-form-item-list {
+    grid-template-columns: 1fr 50px 70px 70px 20px !important;
+  }
+  .invoice-form-actions {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .invoice-form-actions > div {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  .invoice-form-actions button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .invoice-list-container {
+    padding: 72px 24px 24px !important;
+  }
+  .invoice-card {
+    padding: 16px 20px !important;
+  }
+  .invoice-detail-container {
+    padding: 72px 24px 24px !important;
+  }
+  .invoice-detail-actions {
+    padding: 16px 20px !important;
+  }
+  .invoice-detail-card {
+    padding: 24px !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .invoice-list-container {
+    padding: 72px 40px 24px !important;
+    max-width: 100% !important;
+  }
+  .invoice-detail-container {
+    padding: 72px 40px 24px !important;
+    max-width: 100% !important;
+  }
+  .invoice-card {
+    padding: 16px 24px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .invoice-form-overlay {
+    width: min(616px, 100vw) !important;
+    padding: 72px 40px 40px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .invoice-form-overlay {
+    width: 100vw !important;
+    height: 100vh !important;
+    padding: 72px 24px 24px !important;
+  }
+  .invoice-form-overlay .invoice-form-item-list input {
+    font-size: 11px !important;
+    padding: 0 8px !important;
+  }
 }
 
 .show-mobile {

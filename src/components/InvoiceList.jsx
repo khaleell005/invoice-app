@@ -12,6 +12,7 @@ export default function InvoiceList({ onSelect, onNew }) {
 
   return (
     <div
+      className="invoice-list-container"
       style={{
         padding: '72px 24px 24px',
         maxWidth: 780,

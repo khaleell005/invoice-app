@@ -161,6 +161,7 @@ export default function InvoiceForm({ editId, onClose }) {
       }}
     >
       <div
+        className="invoice-form-overlay"
         role="dialog"
         aria-modal="true"
         aria-label={editId ? 'Edit invoice' : 'New invoice'}
@@ -210,6 +211,7 @@ export default function InvoiceForm({ editId, onClose }) {
             )}
           </div>
           <div
+            className="invoice-form-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr 1fr',
@@ -298,6 +300,7 @@ export default function InvoiceForm({ editId, onClose }) {
             )}
           </div>
           <div
+            className="invoice-form-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr 1fr',
@@ -333,6 +336,7 @@ export default function InvoiceForm({ editId, onClose }) {
 
         <section style={{ marginBottom: 40 }}>
           <div
+            className="invoice-form-grid-2"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -397,6 +401,7 @@ export default function InvoiceForm({ editId, onClose }) {
             </p>
           )}
           <div
+            className="invoice-form-item-list"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 60px 90px 90px 20px',
@@ -414,6 +419,7 @@ export default function InvoiceForm({ editId, onClose }) {
           {form.items.map((item, i) => (
             <div
               key={i}
+              className="invoice-form-item-list"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 60px 90px 90px 20px',
@@ -546,7 +552,7 @@ export default function InvoiceForm({ editId, onClose }) {
               Discard
             </button>
           )}
-          <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+          <div className="invoice-form-actions" style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
             {editId ? (
               <button
                 onClick={onClose}
